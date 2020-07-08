@@ -30,7 +30,7 @@ $ curl -v http://localhost:5002/healthcheck
 
 ## Instructions to start the Metadata service from the source
 ```bash
-$ git clone https://github.com/lyft/amundsenmetadatalibrary.git
+$ git clone https://github.com/kylg/amundsenmetadatalibrary.git
 $ cd amundsenmetadatalibrary
 $ python3 -m venv venv
 $ source venv/bin/activate
@@ -45,10 +45,10 @@ $ curl -v http://localhost:5002/healthcheck
 ## Instructions to start the service from Docker
 
 ```bash
-$ docker pull amundsendev/amundsen-metadata:latest
-$ docker run -p 5002:5002 amundsendev/amundsen-metadata
+$ docker pull kylg/amundsen-metadata:latest
+$ docker run -p 5002:5002 kylg/amundsen-metadata
 # - alternative, for production environment with Gunicorn (see its homepage link below)
-$ ## docker run -p 5002:5002 amundsendev/amundsen-metadata gunicorn --bind 0.0.0.0:5002 metadata_service.metadata_wsgi
+$ ## docker run -p 5002:5002 kylg/amundsen-metadata gunicorn --bind 0.0.0.0:5002 metadata_service.metadata_wsgi
 
 -- In a different terminal, verify getting HTTP/1.0 200 OK
 $ curl -v http://localhost:5002/healthcheck
@@ -65,8 +65,8 @@ $ gunicorn metadata_service.metadata_wsgi
 Here is [documentation](https://docs.gunicorn.org/en/latest/run.html "documentation") of gunicorn configuration.
 
 ### Configuration outside local environment
-By default, Metadata service uses [LocalConfig](https://github.com/lyft/amundsenmetadatalibrary/blob/master/metadata_service/config.py "LocalConfig") that looks for Neo4j running in localhost.
-In order to use different end point, you need to create [Config](https://github.com/lyft/amundsenmetadatalibrary/blob/master/metadata_service/config.py "Config") suitable for your use case. Once config class has been created, it can be referenced by [environment variable](https://github.com/lyft/amundsenmetadatalibrary/blob/master/metadata_service/metadata_wsgi.py "environment variable"): `METADATA_SVC_CONFIG_MODULE_CLASS`
+By default, Metadata service uses [LocalConfig](https://github.com/kylg/amundsenmetadatalibrary/blob/master/metadata_service/config.py "LocalConfig") that looks for Neo4j running in localhost.
+In order to use different end point, you need to create [Config](https://github.com/kylg/amundsenmetadatalibrary/blob/master/metadata_service/config.py "Config") suitable for your use case. Once config class has been created, it can be referenced by [environment variable](https://github.com/kylg/amundsenmetadatalibrary/blob/master/metadata_service/metadata_wsgi.py "environment variable"): `METADATA_SVC_CONFIG_MODULE_CLASS`
 
 For example, in order to have different config for production, you can inherit Config class, create Production config and passing production config class into environment variable. Let's say class name is ProdConfig and it's in metadata_service.config module. then you can set as below:
 
@@ -77,7 +77,7 @@ This way Metadata service will use production config in production environment. 
 # Apache Atlas
 Amundsen Metadata service can use Apache Atlas as a backend. Some of the benefits of using Apache Atlas instead of Neo4j is that Apache Atlas offers plugins to several services (e.g. Apache Hive, Apache Spark) that allow for push based updates. It also allows to set policies on what metadata is accesible and editable by means of Apache Ranger.
 
-If you would like to use Apache Atlas as a backend for Metadata service you will need to create a [Config](https://github.com/lyft/amundsenmetadatalibrary/blob/master/metadata_service/config.py "Config") as mentioned above. Make sure to include the following:
+If you would like to use Apache Atlas as a backend for Metadata service you will need to create a [Config](https://github.com/kylg/amundsenmetadatalibrary/blob/master/metadata_service/config.py "Config") as mentioned above. Make sure to include the following:
 
 ```python
 PROXY_CLIENT = PROXY_CLIENTS['ATLAS'] # or env PROXY_CLIENT='ATLAS'

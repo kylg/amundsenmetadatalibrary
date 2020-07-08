@@ -13,7 +13,7 @@ setup(
     name='amundsen-metadata',
     version=__version__,
     description='Metadata service for Amundsen',
-    url='https://www.github.com/lyft/amundsenmetadatalibrary',
+    url='https://www.github.com/kylg/amundsenmetadatalibrary',
     maintainer='Lyft',
     maintainer_email='dev@lyft.com',
     packages=find_packages(exclude=['tests*']),
