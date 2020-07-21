@@ -89,6 +89,7 @@ class Neo4jProxy(BaseProxy):
                       cluster=last_neo4j_record['clstr']['name'],
                       schema=last_neo4j_record['schema']['name'],
                       name=last_neo4j_record['tbl']['name'],
+                      tblLocation=self._safe_get(last_neo4j_record, 'tbl', 'tblLocation'),
                       tags=tags,
                       badges=badges,
                       description=self._safe_get(last_neo4j_record, 'tbl_dscrpt', 'description'),
@@ -883,8 +884,8 @@ class Neo4jProxy(BaseProxy):
 
         # FYI, to extract last_successful_execution, it searches for its execution ID which is always
         # _last_successful_execution
-        # https://github.com/lyft/amundsendatabuilder/blob/master/databuilder/models/dashboard/dashboard_execution.py#L18
-        # https://github.com/lyft/amundsendatabuilder/blob/master/databuilder/models/dashboard/dashboard_execution.py#L24
+        # https://github.com/kylg/amundsendatabuilder/blob/master/databuilder/models/dashboard/dashboard_execution.py#L18
+        # https://github.com/kylg/amundsendatabuilder/blob/master/databuilder/models/dashboard/dashboard_execution.py#L24
 
         query = textwrap.dedent(f"""
         MATCH {rel_clause}<-[:DASHBOARD]-(dg:Dashboardgroup)<-[:DASHBOARD_GROUP]-(clstr:Cluster)
