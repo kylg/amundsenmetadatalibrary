@@ -1,8 +1,8 @@
-Most of the configurations are set through Flask [Config Class](https://github.com/lyft/amundsenmetadatalibrary/blob/master/metadata_service/config.py).
+Most of the configurations are set through Flask [Config Class](https://github.com/kylg/amundsenmetadatalibrary/blob/master/metadata_service/config.py).
 
 #### USER_DETAIL_METHOD `OPTIONAL`
 This is a method that can be used to get the user details from any third-party or custom system.
-This custom function takes user_id  as a parameter, and returns a tuple consisting user details defined in [UserSchema](https://github.com/lyft/amundsencommon/blob/master/amundsen_common/models/user.py) along with the status code. 
+This custom function takes user_id  as a parameter, and returns a tuple consisting user details defined in [UserSchema](https://github.com/kylg/amundsencommon/blob/master/amundsen_common/models/user.py) along with the status code. 
 
 Example:
 ```python
