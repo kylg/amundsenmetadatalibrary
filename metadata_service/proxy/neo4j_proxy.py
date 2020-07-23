@@ -89,6 +89,7 @@ class Neo4jProxy(BaseProxy):
                       cluster=last_neo4j_record['clstr']['name'],
                       schema=last_neo4j_record['schema']['name'],
                       name=last_neo4j_record['tbl']['name'],
+                      tblLocation=self._safe_get(last_neo4j_record, 'tbl', 'tblLocation'),
                       tags=tags,
                       badges=badges,
                       description=self._safe_get(last_neo4j_record, 'tbl_dscrpt', 'description'),
