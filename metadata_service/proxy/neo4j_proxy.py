@@ -806,6 +806,81 @@ class Neo4jProxy(BaseProxy):
 
         return [self._build_user_from_record(record=rec) for rec in result['users']]
 
+    @timer_with_counter
+    def put_user(self, *,
+                 # id: str,
+                 user: UserEntity) -> None:
+        """
+        add user based on user_id(email), update if user exists.
+
+        :param user: user structure
+        :return:
+        """
+
+        upsert_user_query = textwrap.dedent("""
+        MERGE (user:User {key: $user_id})
+        on CREATE SET user.user_id=$user_id,user.email=$email,user.first_name=$first_name,user.last_name=$last_name,
+            user.full_name=$full_name,user.display_name=$display_name,user.is_active=$is_active,user.github_username=$github_username,
+            user.team_name=$team_name,user.slack_id=$slack_id,user.employee_type=$employee_type,user.manager_fullname=$manager_fullname,
+            user.manager_email=$manager_email,user.manager_id=$manager_id,user.role_name=$role_name,user.profile_url=$profile_url
+        on MATCH SET user.user_id=$user_id,user.email=$email,user.first_name=$first_name,user.last_name=$last_name,
+            user.full_name=$full_name,user.display_name=$display_name,user.is_active=$is_active,user.github_username=$github_username,
+            user.team_name=$team_name,user.slack_id=$slack_id,user.employee_type=$employee_type,user.manager_fullname=$manager_fullname,
+            user.manager_email=$manager_email,user.manager_id=$manager_id,user.role_name=$role_name,user.profile_url=$profile_url
+        """)
+
+        upsert_user_mgr_relation_query = textwrap.dedent("""
+        MATCH (user:User {key: $user_id}), (manager:User {{key: $manager_id}})
+        MERGE (user)-[:MANAGE_BY]->(manager:User)
+        RETURN user as user_record, manager as manager_record
+        """)
+
+        start = time.time()
+
+        try:
+            tx = self._driver.session().begin_transaction()
+
+            tx.run(upsert_user_query, {'user_id': user.user_id,
+                                       'email': user.email,
+                                       'first_name': user.first_name,
+                                       'last_name': user.last_name,
+                                       'full_name': user.full_name,
+                                       'display_name': user.display_name,
+                                       'is_active': user.is_active,
+                                       'github_username': user.github_username,
+                                       'team_name': user.team_name,
+                                       'slack_id': user.slack_id,
+                                       'employee_type': user.employee_type,
+                                       'manager_fullname': user.manager_fullname,
+                                       'manager_email': user.manager_email,
+                                       'manager_id': user.manager_id,
+                                       'role_name': user.role_name,
+                                       'profile_url': user.profile_url,
+                                       'other_key_values': user.other_key_values})
+
+            if user.manager_id:
+                result = tx.run(upsert_user_mgr_relation_query, {'user_id': user.user_id,
+                                                             'manager_id': user.manager_id})
+                if not result.single():
+                    raise RuntimeError('Failed to update user {uid}'.format(uid=user.user_id))
+
+            # end neo4j transaction
+            tx.commit()
+
+        except Exception as e:
+            LOGGER.exception('Failed to execute update process', e)
+            if not tx.closed():
+                tx.rollback()
+
+            # propagate exception back to api
+            raise e
+
+        finally:
+            if LOGGER.isEnabledFor(logging.DEBUG):
+                LOGGER.debug('Update process elapsed for {} seconds'.format(time.time() - start))
+
+
+
     @staticmethod
     def _build_user_from_record(record: dict, manager_name: str = '') -> UserEntity:
         """

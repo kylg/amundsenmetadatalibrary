@@ -7,7 +7,7 @@ from amundsen_common.models.popular_table import PopularTableSchema
 from amundsen_common.models.user import UserSchema
 from flasgger import swag_from
 from flask import current_app as app
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 
 from metadata_service.api import BaseAPI
 from metadata_service.entity.resource_type import to_resource_type, ResourceType
@@ -19,9 +19,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 class UserDetailAPI(BaseAPI):
-    """
-    User detail API for people resources
-    """
 
     def __init__(self) -> None:
         self.client = get_proxy_client()
@@ -29,6 +26,9 @@ class UserDetailAPI(BaseAPI):
 
     @swag_from('swagger_doc/user/detail_get.yml')
     def get(self, *, id: Optional[str] = None) -> Iterable[Union[Mapping, int, None]]:
+        """
+        User detail API for people resources
+        """
         if app.config['USER_DETAIL_METHOD']:
             try:
                 return app.config['USER_DETAIL_METHOD'](id)
@@ -37,6 +37,41 @@ class UserDetailAPI(BaseAPI):
                 return {'message': 'user_id {} fetch failed'.format(id)}, HTTPStatus.NOT_FOUND
         else:
             return super().get(id=id)
+
+    # @swag_from('swagger_doc/user/detail_put.yml')
+    def put(self, *, id: Optional[str] = None) -> Iterable[Union[Mapping, int, None]]:
+        """
+        Update User detail API
+        """
+        try:
+            parser = reqparse.RequestParser()
+            parser.add_argument('user_id', type=str, required=True, location='form')
+            parser.add_argument('email', type=str, required=False, location='form')
+            parser.add_argument('first_name', type=str, required=False, location='form')
+            parser.add_argument('last_name', type=str, required=False, location='form')
+            parser.add_argument('full_name', type=str, required=False, location='form')
+            parser.add_argument('display_name', type=str, required=False, location='form')
+            parser.add_argument('is_active', type=bool, required=False, location='form')
+            parser.add_argument('github_username', type=str, required=False, location='form')
+            parser.add_argument('team_name', type=str, required=False, location='form')
+            parser.add_argument('slack_id', type=str, required=False, location='form')
+            parser.add_argument('employee_type', type=str, required=False, location='form')
+            parser.add_argument('manager_fullname', type=str, required=False, location='form')
+            parser.add_argument('manager_email', type=str, required=False, location='form')
+            parser.add_argument('manager_id', type=str, required=False, location='form')
+            parser.add_argument('role_name', type=str, required=False, location='form')
+            parser.add_argument('profile_url', type=str, required=False, location='form')
+            parser.add_argument('other_key_values', type=dict, required=False, location='form')
+            args = parser.parse_args()
+            self.client.put_user(user=args)
+            return {'message': 'User {}/{} '
+                               'is added successfully'.format(args['user_id'],
+                                                              args['email'])}, HTTPStatus.OK
+        except Exception as e:
+            LOGGER.exception('UserDetailAPI PUT Failed', e)
+            return {'message': 'User {}/{} '
+                               'is not added successfully'.format(args['user_id'],
+                                                                  args['email'])}, HTTPStatus.INTERNAL_SERVER_ERROR
 
 
 class UserFollowsAPI(Resource):

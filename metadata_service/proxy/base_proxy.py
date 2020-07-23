@@ -27,6 +27,12 @@ class BaseProxy(metaclass=ABCMeta):
         pass
 
     @abstractmethod
+    def put_user(self, *,
+                 # id: str,
+                 user: UserEntity) -> None:
+        pass
+
+    @abstractmethod
     def get_table(self, *, table_uri: str) -> Table:
         pass
 
