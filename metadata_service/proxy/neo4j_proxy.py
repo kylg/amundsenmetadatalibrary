@@ -897,17 +897,19 @@ class Neo4jProxy(BaseProxy):
                 if k in record:
                     other_key_values[k] = record[k]
 
-        return UserEntity(email=record['email'],
+        return UserEntity(user_id=record.get('user_id'),
+                          email=record['email'],
                           first_name=record.get('first_name'),
                           last_name=record.get('last_name'),
                           full_name=record.get('full_name'),
+                          display_name=record.get('display_name'),
                           is_active=record.get('is_active', False),
                           github_username=record.get('github_username'),
                           team_name=record.get('team_name'),
                           slack_id=record.get('slack_id'),
                           employee_type=record.get('employee_type'),
-                          role_name=record.get('role_name'),
                           manager_fullname=record.get('manager_fullname', manager_name),
+                          role_name=record.get('role_name'),
                           other_key_values=other_key_values)
 
     @staticmethod
