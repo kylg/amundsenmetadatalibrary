@@ -38,7 +38,7 @@ class UserDetailAPI(BaseAPI):
         else:
             return super().get(id=id)
 
-    # @swag_from('swagger_doc/user/detail_put.yml')
+    @swag_from('swagger_doc/user/detail_put.yml')
     def put(self, *, id: Optional[str] = None) -> Iterable[Union[Mapping, int, None]]:
         """
         Update User detail API
@@ -299,3 +299,34 @@ class UserReadsAPI(Resource):
         except Exception:
             LOGGER.exception('UserReadsAPI GET Failed')
             return {'message': 'Internal server error!'}, HTTPStatus.INTERNAL_SERVER_ERROR
+
+    @swag_from('swagger_doc/user/read_put.yml')
+    def put(self, user_id: str, resource_type: str, resource_id: str) -> Iterable[Union[Mapping, int, None]]:
+        """
+        Create the read relationship between user and resources.
+
+        :param user_id:
+        :param table_uri:
+        :return:
+        """
+        try:
+            self.client.add_resource_relation_by_user(id=resource_id,
+                                                      user_id=user_id,
+                                                      relation_type=UserResourceRel.read,
+                                                      resource_type=to_resource_type(label=resource_type))
+
+            self.client.add_resource_relation_by_user(id=resource_id,
+                                                      user_id=user_id,
+                                                      relation_type=UserResourceRel.read_by,
+                                                      resource_type=to_resource_type(label=resource_type))
+
+            return {'message': 'The user {} for id {} resource type {} '
+                               'is added successfully'.format(user_id,
+                                                              resource_id,
+                                                              resource_type)}, HTTPStatus.OK
+        except Exception as e:
+            LOGGER.exception('UserReadsAPI PUT Failed')
+            return {'message': 'The user {} for id {} resource type {}'
+                               'is not added successfully'.format(user_id,
+                                                                  resource_id,
+                                                                  resource_type)}, HTTPStatus.INTERNAL_SERVER_ERROR

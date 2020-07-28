@@ -940,6 +940,8 @@ class Neo4jProxy(BaseProxy):
             relation = f'(usr{user_matcher})<-[rel:OWNER]-(resource{resource_matcher})'
         elif relation_type == UserResourceRel.read:
             relation = f'(usr{user_matcher})-[rel:READ]->(resource{resource_matcher})'
+        elif relation_type == UserResourceRel.read_by:
+            relation = f'(resource{resource_matcher})-[rel:READ_BY]->(usr{user_matcher})'
         else:
             raise NotImplementedError(f'The relation type {relation_type} is not defined!')
         return relation
@@ -1092,12 +1094,31 @@ class Neo4jProxy(BaseProxy):
         rel_clause: str = self._get_user_resource_relationship_clause(relation_type=relation_type,
                                                                       resource_type=resource_type)
 
-        upsert_user_relation_query = textwrap.dedent("""
-        MATCH (usr:User {{key: $user_key}}), (resource:{resource_type} {{key: $resource_key}})
-        MERGE {rel_clause}
-        RETURN usr.key, resource.key
-        """.format(resource_type=resource_type.name,
-                   rel_clause=rel_clause))
+        if relation_type == UserResourceRel.read:
+            upsert_user_relation_query = textwrap.dedent("""
+            MATCH (usr:User {{key: $user_key}}), (resource:{resource_type} {{key: $resource_key}})
+            MERGE {rel_clause}
+            ON CREATE SET rel.read_count = 1
+            ON MATCH SET rel.read_count = rel.read_count + 1
+            RETURN usr.key, resource.key
+            """.format(resource_type=resource_type.name,
+                       rel_clause=rel_clause))
+        elif relation_type == UserResourceRel.read_by:
+            upsert_user_relation_query = textwrap.dedent("""
+            MATCH (resource:{resource_type} {{key: $resource_key}}), (usr:User {{key: $user_key}})
+            MERGE {rel_clause}
+            ON CREATE SET rel.read_count = 1
+            ON MATCH SET rel.read_count = rel.read_count + 1
+            RETURN usr.key, resource.key
+            """.format(resource_type=resource_type.name,
+                       rel_clause=rel_clause))
+        else:
+            upsert_user_relation_query = textwrap.dedent("""
+            MATCH (usr:User {{key: $user_key}}), (resource:{resource_type} {{key: $resource_key}})
+            MERGE {rel_clause}
+            RETURN usr.key, resource.key
+            """.format(resource_type=resource_type.name,
+                       rel_clause=rel_clause))
 
         try:
             tx = self._driver.session().begin_transaction()
