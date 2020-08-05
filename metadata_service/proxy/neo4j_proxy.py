@@ -8,7 +8,7 @@ from typing import (Any, Dict, List, Optional, Tuple, Union,  # noqa: F401
 import neo4j
 from amundsen_common.models.dashboard import DashboardSummary
 from amundsen_common.models.popular_table import PopularTable
-from amundsen_common.models.table import (Application, Column, Reader, Source,
+from amundsen_common.models.table import (Application, Column, Reader, Source, Generator,
                                           Statistics, Table, User,
                                           Watermark, ProgrammaticDescription)
 from amundsen_common.models.table import Tag
@@ -82,7 +82,7 @@ class Neo4jProxy(BaseProxy):
 
         readers = self._exec_usage_query(table_uri)
 
-        wmk_results, table_writer, timestamp_value, owners, tags, source, badges, prog_descs = \
+        wmk_results, table_writer, timestamp_value, owners, tags, source, generator, badges, prog_descs = \
             self._exec_table_query(table_uri)
 
         table = Table(database=last_neo4j_record['db']['name'],
@@ -100,6 +100,7 @@ class Neo4jProxy(BaseProxy):
                       table_writer=table_writer,
                       last_updated_timestamp=timestamp_value,
                       source=source,
+                      generator=generator,
                       is_view=self._safe_get(last_neo4j_record, 'tbl', 'is_view'),
                       programmatic_descriptions=prog_descs
                       )
@@ -187,6 +188,7 @@ class Neo4jProxy(BaseProxy):
         OPTIONAL MATCH (tbl)-[:TAGGED_BY]->(tag:Tag{tag_type: $tag_normal_type})
         OPTIONAL MATCH (tbl)-[:TAGGED_BY]->(badge:Tag{tag_type: $tag_badge_type})
         OPTIONAL MATCH (tbl)-[:SOURCE]->(src:Source)
+        OPTIONAL MATCH (tbl)-[:GENERATED_BY]->(generator:Generator)
         OPTIONAL MATCH (tbl)-[:DESCRIPTION]->(prog_descriptions:Programmatic_Description)
         RETURN collect(distinct wmk) as wmk_records,
         application,
@@ -195,6 +197,7 @@ class Neo4jProxy(BaseProxy):
         collect(distinct tag) as tag_records,
         collect(distinct badge) as badge_records,
         src,
+        generator,
         collect(distinct prog_descriptions) as prog_descriptions
         """)
 
@@ -252,16 +255,19 @@ class Neo4jProxy(BaseProxy):
             owner_record.append(User(email=owner['email']))
 
         src = None
+        generator = None
 
         if table_records['src']:
             src = Source(source_type=table_records['src']['source_type'],
                          source=table_records['src']['source'])
-
+        if table_records['generator']:
+            generator = Generator(generator_type=table_records['generator']['generator_type'],
+                                  generator=table_records['generator']['generator'])
         prog_descriptions = self._extract_programmatic_descriptions_from_query(
             table_records.get('prog_descriptions', [])
         )
 
-        return wmk_results, table_writer, timestamp_value, owner_record, tags, src, badges, prog_descriptions
+        return wmk_results, table_writer, timestamp_value, owner_record, tags, src, generator, badges, prog_descriptions
 
     def _extract_programmatic_descriptions_from_query(self, raw_prog_descriptions: dict) -> list:
         prog_descriptions = []
