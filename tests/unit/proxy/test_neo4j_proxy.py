@@ -1,3 +1,6 @@
+# Copyright Contributors to the Amundsen project.
+# SPDX-License-Identifier: Apache-2.0
+
 import copy
 import textwrap
 import unittest
@@ -79,8 +82,8 @@ class TestNeo4jProxy(unittest.TestCase):
             'last_updated_timestamp': 1,
             'owner_records': [
                 {
-                    'key': 'tester@lyft.com',
-                    'email': 'tester@lyft.com'
+                    'key': 'tester@example.com',
+                    'email': 'tester@example.com'
                 }
             ],
             'tag_records': [
@@ -163,7 +166,7 @@ class TestNeo4jProxy(unittest.TestCase):
                                                                              end_epoch=2,
                                                                              stat_type='avg',
                                                                              stat_val='2')])],
-                             owners=[User(email='tester@lyft.com')],
+                             owners=[User(email='tester@example.com')],
                              table_writer=Application(application_url=self.table_writer['application_url'],
                                                       description=self.table_writer['description'],
                                                       name=self.table_writer['name'],
@@ -214,7 +217,7 @@ class TestNeo4jProxy(unittest.TestCase):
                                                                              end_epoch=2,
                                                                              stat_type='avg',
                                                                              stat_val='2')])],
-                             owners=[User(email='tester@lyft.com')],
+                             owners=[User(email='tester@example.com')],
                              table_writer=Application(application_url=self.table_writer['application_url'],
                                                       description=self.table_writer['description'],
                                                       name=self.table_writer['name'],

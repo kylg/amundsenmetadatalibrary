@@ -1,3 +1,6 @@
+# Copyright Contributors to the Amundsen project.
+# SPDX-License-Identifier: Apache-2.0
+
 import logging
 import textwrap
 import time
@@ -724,14 +727,15 @@ class Neo4jProxy(BaseProxy):
         query = textwrap.dedent("""
         MATCH (tbl:Table)-[r:READ_BY]->(u:User)
         WITH tbl.key as table_key, count(distinct u) as readers, sum(r.read_count) as total_reads
-        WHERE readers > 10
+        WHERE readers >= $num_readers
         RETURN table_key, readers, total_reads, (readers * log(total_reads)) as score
         ORDER BY score DESC LIMIT $num_entries;
         """)
-
         LOGGER.info('Querying popular tables URIs')
+        num_readers = current_app.config['POPULAR_TABLE_MINIMUM_READER_COUNT']
         records = self._execute_cypher_query(statement=query,
-                                             param_dict={'num_entries': num_entries})
+                                             param_dict={'num_readers': num_readers,
+                                                         'num_entries': num_entries})
 
         return [record['table_key'] for record in records]
 
@@ -914,8 +918,8 @@ class Neo4jProxy(BaseProxy):
                           team_name=record.get('team_name'),
                           slack_id=record.get('slack_id'),
                           employee_type=record.get('employee_type'),
-                          manager_fullname=record.get('manager_fullname', manager_name),
                           role_name=record.get('role_name'),
+                          manager_fullname=record.get('manager_fullname', manager_name),
                           other_key_values=other_key_values)
 
     @staticmethod

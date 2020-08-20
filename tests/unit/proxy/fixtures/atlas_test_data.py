@@ -1,4 +1,14 @@
+# Copyright Contributors to the Amundsen project.
+# SPDX-License-Identifier: Apache-2.0
+
 import copy
+
+
+class DottedDict(dict):
+    """dot.notation access to dictionary attributes"""
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
 
 
 class Data:
@@ -95,7 +105,14 @@ class Data:
             'owner': 'dummy@email.com',
             'db': db_entity,
             'popularityScore': 100,
-            'partitions': list()
+            'partitions': list(),
+            'parameters': {
+                'testParameterKeyB': 'testParameterValueB',
+                'testParameterKeyA': 'testParameterValueA',
+                'spark.sql.param': 1
+            },
+            'reports': [{'guid': '23'}, {'guid': '121212'}, {'guid': '2344'}],
+            'tableType': 'MANAGED_TABLE'
         },
         'relationshipAttributes': {
             'db': db_entity,
@@ -115,7 +132,8 @@ class Data:
             'owner': 'dummy@email.com',
             'db': db_entity,
             'popularityScore': 100,
-            'partitions': list()
+            'partitions': list(),
+            'tableType': 'VIRTUAL_VIEW'
         },
         'relationshipAttributes': {
             'db': db_entity
@@ -166,3 +184,106 @@ class Data:
             bookmark_entity2,
         ]
     }
+
+    user_entity_1 = {
+        "typeName": "User",
+        "attributes": {
+            "qualifiedName": "test_user_1"
+        },
+        "guid": "",
+        "status": "ACTIVE",
+        "displayText": 'test_user_1',
+        "classificationNames": [],
+        "meaningNames": [],
+        "meanings": []
+    }
+
+    user_entity_2 = {
+        "typeName": "User",
+        "attributes": {
+            "qualifiedName": "test_user_2"
+        },
+        "guid": "",
+        "status": "ACTIVE",
+        "displayText": 'test_user_2',
+        "classificationNames": [],
+        "meaningNames": [],
+        "meanings": [],
+        "relationshipAttributes": {
+            "entityReads": [
+                {
+                    "entityStatus": "ACTIVE",
+                    "relationshipStatus": "ACTIVE",
+                    "guid": "1"
+                },
+                {
+                    "entityStatus": "INACTIVE",
+                    "relationshipStatus": "ACTIVE",
+                    "guid": "2"
+                },
+                {
+                    "entityStatus": "ACTIVE",
+                    "relationshipStatus": "INACTIVE",
+                    "guid": "3"
+                }
+            ]
+        }
+    }
+
+    reader_entity_1 = {
+        "typeName": "Reader",
+        "attributes": {
+            "count": 5,
+            "qualifiedName": '{}.{}.{}.reader@{}'.format(db, 'Table1', 'test_user_1', cluster),
+            "entityUri": f"hive_table://{cluster}.{db}/Table1",
+        },
+        "guid": "1",
+        "status": "ACTIVE",
+        "displayText": '{}.{}.{}.reader@{}'.format(db, 'Table1', 'test_user', cluster),
+        "classificationNames": [],
+        "meaningNames": [],
+        "meanings": [],
+        "relationshipAttributes": {"user": user_entity_1}
+    }
+
+    reader_entity_2 = {
+        "typeName": "Reader",
+        "attributes": {
+            "count": 150,
+            "qualifiedName": '{}.{}.{}.reader@{}'.format(db, 'Table1', 'test_user_2', cluster),
+            "entityUri": f"hive_table://{cluster}.{db}/Table1",
+        },
+        "guid": "2",
+        "status": "ACTIVE",
+        "displayText": '{}.{}.{}.reader@{}'.format(db, 'Table1', 'test_user_2', cluster),
+        "classificationNames": [],
+        "meaningNames": [],
+        "meanings": [],
+        "relationshipAttributes": {"user": user_entity_2}
+    }
+
+    reader_entities = [DottedDict(reader_entity) for reader_entity in [reader_entity_1, reader_entity_2]]
+
+    report_entity_1 = {
+        'typeName': 'Report',
+        'status': 'ACTIVE',
+        'attributes': {
+            'name': "test_report",
+            'url': "http://test"
+        }}
+    report_entity_2 = {
+        'typeName': 'Report',
+        'status': 'DELETED',
+        'attributes': {
+            'name': "test_report2",
+            'url': "http://test2"
+        }}
+    report_entity_3 = {
+        'typeName': 'Report',
+        'status': 'ACTIVE',
+        'attributes': {
+            'name': "test_report3",
+            'url': "http://test3"
+        }}
+
+    report_entities = [report_entity_1, report_entity_2, report_entity_3]

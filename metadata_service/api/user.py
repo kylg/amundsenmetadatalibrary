@@ -1,3 +1,6 @@
+# Copyright Contributors to the Amundsen project.
+# SPDX-License-Identifier: Apache-2.0
+
 import logging
 from http import HTTPStatus
 from typing import Iterable, Mapping, Optional, Union, Dict, List, Any  # noqa: F401
@@ -31,7 +34,8 @@ class UserDetailAPI(BaseAPI):
         """
         if app.config['USER_DETAIL_METHOD']:
             try:
-                return app.config['USER_DETAIL_METHOD'](id)
+                user_data = app.config['USER_DETAIL_METHOD'](id)
+                return UserSchema().dump(user_data).data, HTTPStatus.OK
             except Exception:
                 LOGGER.exception('UserDetailAPI GET Failed - Using "USER_DETAIL_METHOD" config variable')
                 return {'message': 'user_id {} fetch failed'.format(id)}, HTTPStatus.NOT_FOUND

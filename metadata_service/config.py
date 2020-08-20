@@ -1,3 +1,6 @@
+# Copyright Contributors to the Amundsen project.
+# SPDX-License-Identifier: Apache-2.0
+
 import distutils.util
 import os
 from typing import List, Dict, Optional, Set  # noqa: F401
@@ -61,8 +64,16 @@ class Config:
 
     USER_DETAIL_METHOD = None   # type: Optional[function]
 
+    RESOURCE_REPORT_CLIENT = None   # type: Optional[function]
+
     # On User detail method, these keys will be added into amundsen_common.models.user.User.other_key_values
     USER_OTHER_KEYS = {'mode_user_id'}  # type: Set[str]
+
+    # Number of minimum reader count to qualify for popular table
+    POPULAR_TABLE_MINIMUM_READER_COUNT = 10  # type: int
+
+    # List of regexes which will exclude certain parameters from appearing as Programmatic Descriptions
+    PROGRAMMATIC_DESCRIPTIONS_EXCLUDE_FILTERS = []  # type: list
 
 
 class LocalConfig(Config):
@@ -78,6 +89,8 @@ class LocalConfig(Config):
     PROXY_VALIDATE_SSL = bool(distutils.util.strtobool(os.environ.get(PROXY_VALIDATE_SSL, 'False')))
 
     JANUS_GRAPH_URL = None
+
+    IS_STATSD_ON = bool(distutils.util.strtobool(os.environ.get(IS_STATSD_ON, 'False')))
 
     SWAGGER_ENABLED = True
     SWAGGER_TEMPLATE_PATH = os.path.join('api', 'swagger_doc', 'template.yml')
