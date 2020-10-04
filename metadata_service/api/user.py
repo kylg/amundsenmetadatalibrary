@@ -67,10 +67,16 @@ class UserDetailAPI(BaseAPI):
             parser.add_argument('profile_url', type=str, required=False, location='form')
             parser.add_argument('other_key_values', type=dict, required=False, location='form')
             args = parser.parse_args()
+            user = self.client.get_user(id=args['user_id'])
+            # merge the role_name
+            if user:
+                args['role_name'] = user.role_name
             self.client.put_user(user=args)
-            return {'message': 'User {}/{} '
-                               'is added successfully'.format(args['user_id'],
-                                                              args['email'])}, HTTPStatus.OK
+            if user:
+                LOGGER.info("update user {}/{} successfully".format(args['user_id'], args['email']))
+            else:
+                LOGGER.info("add user {}/{} successfully".format(args['user_id'], args['email']))
+            return args, HTTPStatus.OK
         except Exception as e:
             LOGGER.exception('UserDetailAPI PUT Failed', e)
             return {'message': 'User {}/{} '
